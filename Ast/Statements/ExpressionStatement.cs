@@ -1,8 +1,11 @@
-﻿namespace Lab3.Ast.Statements {
-	sealed class ExpressionStatement : IStatement {
+﻿namespace Lab3.Ast.Statements
+{
+	sealed class ExpressionStatement : IStatement
+	{
 		public int Position { get; }
 		public readonly IExpression Expr;
-		public ExpressionStatement(int position, IExpression expr) {
+		public ExpressionStatement(int position, IExpression expr)
+		{
 			Position = position;
 			Expr = expr;
 		}
