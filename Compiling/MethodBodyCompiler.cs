@@ -1,5 +1,6 @@
 ﻿using Lab3.Ast;
 using Lab3.Ast.Expressions;
+using Lab3.Ast.ForStatements;
 using Lab3.Ast.Statements;
 using Lab3.Parsing;
 using Mono.Cecil;
@@ -8,7 +9,7 @@ using System;
 using System.Collections.Generic;
 namespace Lab3.Compiling
 {
-	sealed class MethodBodyCompiler : IStatementVisitor, IExpressionVisitor<TypeRef>
+	sealed class MethodBodyCompiler : IStatementVisitor, IExpressionVisitor<TypeRef>, IForStatementVisitor
 	{
 		readonly SourceFile sourceFile;
 		readonly AllTypes types;
@@ -57,6 +58,10 @@ namespace Lab3.Compiling
 		{
 			statement.Accept(this);
 		}
+		void CompileForStatement(IForStatement statement)
+		{
+			statement.Accept(this);
+		}
 		void CompileBlock(Block block)
 		{
 			foreach (var statement in block.Statements)
@@ -65,6 +70,15 @@ namespace Lab3.Compiling
 			}
 		}
 		public void VisitAssignment(Assignment statement)
+		{
+			CompileBasicAssignment(statement);
+		}
+		public void VisitForAssignment(ForAssignment statement)
+		{
+			CompileBasicAssignment(statement);
+		}
+
+		public void CompileBasicAssignment(BasicAssignment statement)
 		{
 			var id = statement.Target as Identifier;
 			var member = statement.Target as MemberAccess;
@@ -114,6 +128,15 @@ namespace Lab3.Compiling
 		}
 		public void VisitExpressionStatement(ExpressionStatement statement)
 		{
+			CompileBasicExpressionStatement(statement);
+		}
+		public void VisitForExpressionStatement(ForExpressionStatement statement)
+		{
+			CompileBasicExpressionStatement(statement);
+		}
+
+		public void CompileBasicExpressionStatement(BasicExpressionStatement statement)
+		{
 			if (CompileExpression(statement.Expr) != types.Void)
 				cil.Emit(OpCodes.Pop);
 		}
@@ -153,6 +176,35 @@ namespace Lab3.Compiling
 			{
 				throw WrongType(statement.Condition, conditionType, types.Bool);
 			}
+		}
+		public void VisitFor(For statement)
+		{
+			var finish = Instruction.Create(OpCodes.Nop);
+			var start = Instruction.Create(OpCodes.Nop);
+			if (statement.Initializer != null)
+				CompileForStatement(statement.Initializer);
+			cil.Append(start);
+
+			if (statement.Condition != null)
+			{
+				var conditionType = CompileExpression(statement.Condition);
+				if (conditionType == types.Bool)
+				{
+					cil.Emit(OpCodes.Brfalse, finish);
+				}
+				else
+				{
+					throw WrongType(statement.Condition, conditionType, types.Bool);
+				}
+			}
+
+			CompileBlock(statement.Body);
+			CompileForStatement(statement.Iterator);
+
+			cil.Emit(OpCodes.Br, start);
+
+			cil.Append(finish);
+
 		}
 		#endregion
 		#region expressions

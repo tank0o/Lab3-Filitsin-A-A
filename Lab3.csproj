@@ -82,8 +82,15 @@
     <Compile Include="Ast\Declarations\ClassDeclaration.cs" />
     <Compile Include="Ast\Declarations\FunctionDeclaration.cs" />
     <Compile Include="Ast\Expressions\TypedExpression.cs" />
+    <Compile Include="Ast\ForStatements\ForAssignment.cs" />
+    <Compile Include="Ast\ForStatements\ForExpressionStatement.cs" />
     <Compile Include="Ast\IClassMember.cs" />
     <Compile Include="Ast\IDeclaration.cs" />
+    <Compile Include="Ast\IForStatement.cs" />
+    <Compile Include="Ast\IForStatementVisitor.cs" />
+    <Compile Include="Ast\Statements\BasicAssignment.cs" />
+    <Compile Include="Ast\Statements\BasicExpressionStatement.cs" />
+    <Compile Include="Ast\Statements\For.cs" />
     <Compile Include="Ast\TypeNode.cs" />
     <Compile Include="Ast\Parameter.cs" />
     <Compile Include="Ast\Statements\Assignment.cs" />

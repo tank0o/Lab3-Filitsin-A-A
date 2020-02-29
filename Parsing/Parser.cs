@@ -2,6 +2,7 @@
 using Lab3.Ast.ClassMembers;
 using Lab3.Ast.Declarations;
 using Lab3.Ast.Expressions;
+using Lab3.Ast.ForStatements;
 using Lab3.Ast.Statements;
 using System;
 using System.Collections.Generic;
@@ -202,6 +203,30 @@ namespace Lab3.Parsing
 				var block = ParseBlock();
 				return new While(pos, condition, block);
 			}
+			if (SkipIf("for"))
+			{
+				IForStatement initializer = null;
+				IForStatement iterator = null;
+				Expect("(");
+				if (!SkipIf(";"))
+				{
+					initializer = ParseStatementFor();
+					Expect(";");
+				}
+				IExpression condition = null;
+				if (!SkipIf(";"))
+				{
+					condition = ParseExpression();
+					Expect(";");
+				}
+				if (!SkipIf(")"))
+				{
+					iterator = ParseStatementFor();
+					Expect(")");
+				}
+				var block = ParseBlock();
+				return new For(pos, initializer, condition, iterator, block);
+			}
 			if (SkipIf("return"))
 			{
 				IExpression expr = null;
@@ -226,6 +251,22 @@ namespace Lab3.Parsing
 			var restAssigmentExpression = ParseExpression();
 			Expect(";");
 			return new Assignment(pos, expression, type, restAssigmentExpression);
+		}
+		IForStatement ParseStatementFor()
+		{
+			var pos = CurrentPosition;
+			var expression = ParseExpression();
+			TypeNode type = null;
+			if (SkipIf(":"))
+			{
+				type = ParseType();
+			}
+			if (SkipIf("="))
+			{
+				var restAssigmentExpression = ParseExpression();
+				return new ForAssignment(pos, expression, type, restAssigmentExpression);
+			}
+			return new ForExpressionStatement(pos, expression);
 		}
 		TypeNode ParseType()
 		{
